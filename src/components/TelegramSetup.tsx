@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,14 +58,14 @@ const TelegramSetup = ({ onSetupComplete }: TelegramSetupProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
             <Bot className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Setup Your Telegram Bot</h1>
-          <p className="text-gray-600 mt-2">Configure your personal Telegram storage</p>
+          <h1 className="text-3xl font-bold text-foreground">Setup Your Telegram Bot</h1>
+          <p className="text-muted-foreground mt-2">Configure your personal Telegram storage</p>
         </div>
 
         <Card className="mb-6">
@@ -117,7 +116,7 @@ const TelegramSetup = ({ onSetupComplete }: TelegramSetupProps) => {
                   onChange={(e) => setBotToken(e.target.value)}
                   required
                 />
-                <p className="text-sm text-gray-500">Get this from @BotFather on Telegram</p>
+                <p className="text-sm text-muted-foreground">Get this from @BotFather on Telegram</p>
               </div>
 
               <div className="space-y-2">
@@ -130,7 +129,7 @@ const TelegramSetup = ({ onSetupComplete }: TelegramSetupProps) => {
                   onChange={(e) => setChannelId(e.target.value)}
                   required
                 />
-                <p className="text-sm text-gray-500">Your private channel ID (starts with -100)</p>
+                <p className="text-sm text-muted-foreground">Your private channel ID (starts with -100)</p>
               </div>
 
               <div className="space-y-2">
@@ -142,7 +141,7 @@ const TelegramSetup = ({ onSetupComplete }: TelegramSetupProps) => {
                   value={botUsername}
                   onChange={(e) => setBotUsername(e.target.value)}
                 />
-                <p className="text-sm text-gray-500">For validation purposes</p>
+                <p className="text-sm text-muted-foreground">For validation purposes</p>
               </div>
 
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>

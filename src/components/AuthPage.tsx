@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +34,7 @@ const AuthPage = () => {
         title: "Welcome back!",
         description: "You've successfully signed in.",
       });
+      // The useAuth hook will handle the redirect automatically
     }
     
     setIsLoading(false);
@@ -69,14 +69,14 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4">
             <Cloud className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">TeleDrive</h1>
-          <p className="text-gray-600 mt-2">Secure cloud storage powered by Telegram</p>
+          <h1 className="text-3xl font-bold text-foreground">TeleDrive</h1>
+          <p className="text-muted-foreground mt-2">Secure cloud storage powered by Telegram</p>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">
@@ -96,7 +96,7 @@ const AuthPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 
                         id="signin-email" 
                         name="email"
@@ -110,7 +110,7 @@ const AuthPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 
                         id="signin-password" 
                         name="password"
@@ -141,7 +141,7 @@ const AuthPage = () => {
                     <div className="space-y-2">
                       <Label htmlFor="firstName">First Name</Label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <Input 
                           id="firstName" 
                           name="firstName"
@@ -166,7 +166,7 @@ const AuthPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 
                         id="signup-email" 
                         name="email"
@@ -180,7 +180,7 @@ const AuthPage = () => {
                   <div className="space-y-2">
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input 
                         id="signup-password" 
                         name="password"
