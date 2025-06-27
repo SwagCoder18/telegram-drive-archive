@@ -1,16 +1,74 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, Folder, FileText, Image, Archive, Music, Video, Shield, Cloud, Zap } from "lucide-react";
 import Login from "@/components/Login";
 import Dashboard from "@/components/Dashboard";
+import AuthPage from "@/components/AuthPage";
+import TelegramSetup from "@/components/TelegramSetup";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading } = useAuth();
+  const [showAuthPage, setShowAuthPage] = useState(false);
+  const [telegramSetupComplete, setTelegramSetupComplete] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
 
-  if (isAuthenticated) {
-    return <Dashboard onLogout={() => setIsAuthenticated(false)} />;
+  useEffect(() => {
+    const checkTelegramSetup = async () => {
+      if (!user) {
+        setCheckingSetup(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('telegram_setup_completed')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+        setTelegramSetupComplete(data?.telegram_setup_completed || false);
+      } catch (error) {
+        console.error('Error checking Telegram setup:', error);
+        setTelegramSetupComplete(false);
+      } finally {
+        setCheckingSetup(false);
+      }
+    };
+
+    checkTelegramSetup();
+  }, [user]);
+
+  if (loading || checkingSetup) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 animate-pulse">
+            <Cloud className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (showAuthPage) {
+    return <AuthPage />;
+  }
+
+  if (user) {
+    if (!telegramSetupComplete) {
+      return (
+        <TelegramSetup 
+          onSetupComplete={() => setTelegramSetupComplete(true)} 
+        />
+      );
+    }
+    return <Dashboard onLogout={() => setTelegramSetupComplete(false)} />;
   }
 
   return (
@@ -24,7 +82,12 @@ const Index = () => {
             </div>
             <h1 className="text-2xl font-bold text-gray-900">TeleDrive</h1>
           </div>
-          <Login onLogin={() => setIsAuthenticated(true)} />
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => setShowAuthPage(true)}
+          >
+            Get Started
+          </Button>
         </div>
       </header>
 
@@ -40,13 +103,17 @@ const Index = () => {
               <span className="text-blue-600 block">Powered by Telegram</span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Secure, unlimited file storage using Telegram's infrastructure. 
+              Secure, unlimited file storage using your own Telegram bot and private channel. 
               Upload, organize, and access your files from anywhere.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3">
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3"
+              onClick={() => setShowAuthPage(true)}
+            >
               Get Started Free
             </Button>
             <Button size="lg" variant="outline" className="px-8 py-3">
@@ -61,9 +128,9 @@ const Index = () => {
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-blue-600" />
                 </div>
-                <CardTitle className="text-xl">Secure Storage</CardTitle>
+                <CardTitle className="text-xl">Your Own Bot</CardTitle>
                 <CardDescription>
-                  Your files are encrypted and stored securely using Telegram's robust infrastructure
+                  Use your own Telegram bot and private channel for complete control over your data
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -124,7 +191,7 @@ const Index = () => {
             </div>
             <h3 className="text-xl font-bold">TeleDrive</h3>
           </div>
-          <p className="text-gray-400">Secure cloud storage powered by Telegram</p>
+          <p className="text-gray-400">Secure cloud storage powered by your own Telegram bot</p>
         </div>
       </footer>
     </div>

@@ -12,6 +12,7 @@ export type Database = {
       files: {
         Row: {
           created_at: string | null
+          folder_path: string | null
           id: string
           is_folder: boolean | null
           mime_type: string | null
@@ -19,12 +20,15 @@ export type Database = {
           path: string
           size: number
           telegram_file_id: string | null
+          telegram_message_id: number | null
           type: string
           updated_at: string | null
+          upload_status: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          folder_path?: string | null
           id?: string
           is_folder?: boolean | null
           mime_type?: string | null
@@ -32,12 +36,15 @@ export type Database = {
           path?: string
           size?: number
           telegram_file_id?: string | null
+          telegram_message_id?: number | null
           type: string
           updated_at?: string | null
+          upload_status?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          folder_path?: string | null
           id?: string
           is_folder?: boolean | null
           mime_type?: string | null
@@ -45,40 +52,54 @@ export type Database = {
           path?: string
           size?: number
           telegram_file_id?: string | null
+          telegram_message_id?: number | null
           type?: string
           updated_at?: string | null
+          upload_status?: string | null
           user_id?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          bot_token: string | null
+          bot_username: string | null
+          channel_id: string | null
           created_at: string
           first_name: string | null
           id: string
           last_name: string | null
           photo_url: string | null
           telegram_id: number | null
+          telegram_setup_completed: boolean | null
           updated_at: string
           username: string | null
         }
         Insert: {
+          bot_token?: string | null
+          bot_username?: string | null
+          channel_id?: string | null
           created_at?: string
           first_name?: string | null
           id: string
           last_name?: string | null
           photo_url?: string | null
           telegram_id?: number | null
+          telegram_setup_completed?: boolean | null
           updated_at?: string
           username?: string | null
         }
         Update: {
+          bot_token?: string | null
+          bot_username?: string | null
+          channel_id?: string | null
           created_at?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
           photo_url?: string | null
           telegram_id?: number | null
+          telegram_setup_completed?: boolean | null
           updated_at?: string
           username?: string | null
         }
