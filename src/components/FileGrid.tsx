@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Image, Video, Music, Archive, Download, MoreVertical } from "lucide-react";
+import { FileText, Image, Video, Music, Archive, Download, MoreVertical, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface File {
   id: number;
@@ -13,14 +14,17 @@ interface File {
   type: string;
   folder: string;
   uploadedAt: string;
+  telegramFileId?: string;
+  telegramMessageId?: number;
 }
 
 interface FileGridProps {
   files: File[];
   viewMode: 'grid' | 'list';
+  onRefresh?: () => void;
 }
 
-const FileGrid = ({ files, viewMode }: FileGridProps) => {
+const FileGrid = ({ files, viewMode, onRefresh }: FileGridProps) => {
   const { toast } = useToast();
 
   const getFileIcon = (type: string) => {
@@ -54,19 +58,93 @@ const FileGrid = ({ files, viewMode }: FileGridProps) => {
     }
   };
 
-  const handleDownload = (file: File) => {
-    toast({
-      title: "Download started",
-      description: `Downloading ${file.name} from Telegram storage...`,
-    });
+  const handleDownload = async (file: File) => {
+    if (!file.telegramFileId) {
+      toast({
+        title: "Download failed",
+        description: "File ID not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      toast({
+        title: "Download started",
+        description: `Downloading ${file.name} from Telegram storage...`,
+      });
+
+      const { data, error } = await supabase.functions.invoke('telegram-service', {
+        body: {
+          action: 'download',
+          fileId: file.telegramFileId
+        }
+      });
+
+      if (error) throw error;
+
+      // Create blob and download
+      const blob = new Blob([data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.name;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Download completed",
+        description: `${file.name} has been downloaded successfully.`,
+      });
+    } catch (error: any) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: error.message || "Failed to download file from Telegram storage.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDelete = (file: File) => {
-    toast({
-      title: "File deleted",
-      description: `${file.name} has been removed from your storage.`,
-      variant: "destructive",
-    });
+  const handleDelete = async (file: File) => {
+    if (!file.telegramMessageId) {
+      toast({
+        title: "Delete failed",
+        description: "Message ID not found.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('telegram-service', {
+        body: {
+          action: 'delete',
+          messageId: file.telegramMessageId
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "File deleted",
+        description: `${file.name} has been removed from your storage.`,
+      });
+
+      // Refresh the file list
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to delete file from Telegram storage.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (files.length === 0) {
@@ -126,9 +204,11 @@ const FileGrid = ({ files, viewMode }: FileGridProps) => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           <DropdownMenuItem onClick={() => handleDownload(file)}>
+                            <Download className="w-4 h-4 mr-2" />
                             Download
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(file)} className="text-red-600">
+                            <Trash2 className="w-4 h-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -184,9 +264,11 @@ const FileGrid = ({ files, viewMode }: FileGridProps) => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem onClick={() => handleDownload(file)}>
+                        <Download className="w-4 h-4 mr-2" />
                         Download
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDelete(file)} className="text-red-600">
+                        <Trash2 className="w-4 h-4 mr-2" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>

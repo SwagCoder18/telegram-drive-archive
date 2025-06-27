@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Upload, FileText, X, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const FileUpload = () => {
   const [open, setOpen] = useState(false);
@@ -41,27 +41,86 @@ const FileUpload = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   const handleUpload = async () => {
     if (files.length === 0) return;
     
     setUploading(true);
     setUploadProgress(0);
 
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 10) {
-      setUploadProgress(i);
-      await new Promise(resolve => setTimeout(resolve, 100));
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Check file size (Telegram limit is 50MB)
+        if (file.size > 50 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: `${file.name} is larger than 50MB. Telegram doesn't support files larger than 50MB.`,
+            variant: "destructive",
+          });
+          continue;
+        }
+
+        setUploadProgress(Math.round(((i + 0.5) / files.length) * 100));
+        
+        // Convert file to base64
+        const fileData = await fileToBase64(file);
+        
+        // Upload to Telegram via Edge Function
+        const { data, error } = await supabase.functions.invoke('telegram-service', {
+          body: {
+            action: 'upload',
+            fileData,
+            fileName: file.name
+          }
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data.success) {
+          throw new Error(data.error || 'Upload failed');
+        }
+
+        setUploadProgress(Math.round(((i + 1) / files.length) * 100));
+      }
+
+      toast({
+        title: "Upload successful!",
+        description: `${files.length} file${files.length > 1 ? 's' : ''} uploaded to your Telegram storage.`,
+      });
+
+      setFiles([]);
+      setOpen(false);
+      
+      // Refresh the page to show new files
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: error.message || "Failed to upload files to Telegram storage.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
     }
-
-    toast({
-      title: "Upload successful!",
-      description: `${files.length} file${files.length > 1 ? 's' : ''} uploaded to your Telegram storage.`,
-    });
-
-    setUploading(false);
-    setFiles([]);
-    setOpen(false);
-    setUploadProgress(0);
   };
 
   return (
@@ -76,7 +135,7 @@ const FileUpload = () => {
         <DialogHeader>
           <DialogTitle>Upload Files</DialogTitle>
           <DialogDescription>
-            Upload files to your Telegram cloud storage
+            Upload files to your Telegram cloud storage (max 50MB per file)
           </DialogDescription>
         </DialogHeader>
         
@@ -94,7 +153,7 @@ const FileUpload = () => {
                   Drop files here or click to browse
                 </p>
                 <p className="text-sm text-gray-500 mb-4">
-                  Support for all file types, unlimited size
+                  Support for all file types, max 50MB per file
                 </p>
                 <input
                   type="file"
@@ -145,7 +204,7 @@ const FileUpload = () => {
           {uploading && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Uploading...</span>
+                <span className="text-sm font-medium">Uploading to Telegram...</span>
                 <span className="text-sm text-gray-500">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="w-full" />
